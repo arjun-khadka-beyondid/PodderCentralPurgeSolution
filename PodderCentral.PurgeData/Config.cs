@@ -15,5 +15,6 @@ namespace PodderCentral.PurgeData
         public string SecretName { get; set; }
         public string Region { get; set; }
         public string DbName { get; set; }
+        public int DaysToPreserveData { get; set; }
     }
 }

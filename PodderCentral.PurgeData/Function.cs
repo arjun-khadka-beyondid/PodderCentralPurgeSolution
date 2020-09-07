@@ -29,7 +29,7 @@ namespace PodderCentral.PurgeData
             var environmentSetting = serializer.Deserialize<EnvironmentSetting>(streamEnv);
             if (!environmentSetting.IsCloud)
             {
-
+                LambdaLogger.Log($"IsCloud:false");
                 var configSettingByte = File.ReadAllBytes($"Config.{environmentSetting.Environment}.json");
                 var streamConfigSetting = new MemoryStream(configSettingByte);
 
@@ -38,10 +38,15 @@ namespace PodderCentral.PurgeData
             }
             else
             {
+                LambdaLogger.Log($"IsCloud:true");
                 _configSetting.Region = Environment.GetEnvironmentVariable("region");
                 _configSetting.SecretName = Environment.GetEnvironmentVariable("secretName");
                 _configSetting.DbName = Environment.GetEnvironmentVariable("dbName");
+                int.TryParse(Environment.GetEnvironmentVariable("daysToPreserveData"),out int daysToPreserveData);
+              _configSetting.DaysToPreserveData = daysToPreserveData;
+
             }
+            LambdaLogger.Log($"{environmentSetting.IsCloud}");
         }
 
         /// <summary>
@@ -65,7 +70,9 @@ namespace PodderCentral.PurgeData
 
                 var dbContext = new DBContext(secretCredential);               
                 int? affRows = null;
-                affRows = dbContext.PurgeData();
+                if (_configSetting.DaysToPreserveData <= 0) throw new ApplicationException("DaysToPreserveData input is invalid");
+
+                affRows = dbContext.PurgeData(_configSetting.DaysToPreserveData);
 
                 //return $"AffectedRows:{affRows}";
                 var result = $"Success:true, AffectedRows:{affRows}{Environment.NewLine}";
@@ -87,8 +94,8 @@ namespace PodderCentral.PurgeData
             if (string.IsNullOrEmpty(secretName) || string.IsNullOrEmpty(region)) throw new ApplicationException("SecretName and Region do not exist");
 
             string secret = "";
-            LambdaLogger.Log("Region " + region + Environment.NewLine);
-            //LambdaLogger.Log("SecretName " + secretName);          
+            LambdaLogger.Log($"Region:{region}{Environment.NewLine}");
+            LambdaLogger.Log($"SecretName:{secretName}{Environment.NewLine}");          
 
             LambdaLogger.Log($"Started:GetBySystemName{Environment.NewLine}");
             IAmazonSecretsManager client = new AmazonSecretsManagerClient(RegionEndpoint.GetBySystemName(region));
@@ -114,42 +121,42 @@ namespace PodderCentral.PurgeData
             {
                 // Secrets Manager can't decrypt the protected secret text using the provided KMS key.
                 // Deal with the exception here, and/or rethrow at your discretion.
-                LambdaLogger.Log($"Exception:{ex.Message}, Stacktrace: {ex.StackTrace}{Environment.NewLine}");
+                LambdaLogger.Log($"Error:{ex.Message}, Stacktrace: {ex.StackTrace}{Environment.NewLine}");
 
             }
             catch (InternalServiceErrorException ex)
             {
                 // An error occurred on the server side.
                 // Deal with the exception here, and/or rethrow at your discretion.
-                LambdaLogger.Log($"Exception:{ex.Message}, Stacktrace: {ex.StackTrace}{Environment.NewLine}");
+                LambdaLogger.Log($"Error:{ex.Message}, Stacktrace: {ex.StackTrace}{Environment.NewLine}");
 
             }
             catch (InvalidParameterException ex)
             {
                 // You provided an invalid value for a parameter.
                 // Deal with the exception here, and/or rethrow at your discretion
-                LambdaLogger.Log($"Exception:{ex.Message}, Stacktrace: {ex.StackTrace}{Environment.NewLine}");
+                LambdaLogger.Log($"Error:{ex.Message}, Stacktrace: {ex.StackTrace}{Environment.NewLine}");
 
             }
             catch (InvalidRequestException ex)
             {
                 // You provided a parameter value that is not valid for the current state of the resource.
                 // Deal with the exception here, and/or rethrow at your discretion.
-                LambdaLogger.Log($"Exception:{ex.Message}, Stacktrace: {ex.StackTrace}{Environment.NewLine}");
+                LambdaLogger.Log($"Error:{ex.Message}, Stacktrace: {ex.StackTrace}{Environment.NewLine}");
 
             }
             catch (ResourceNotFoundException ex)
             {
                 // We can't find the resource that you asked for.
                 // Deal with the exception here, and/or rethrow at your discretion.
-                LambdaLogger.Log($"Exception:{ex.Message}, Stacktrace: {ex.StackTrace}{Environment.NewLine}");
+                LambdaLogger.Log($"Error:{ex.Message}, Stacktrace: {ex.StackTrace}{Environment.NewLine}");
 
             }
             catch (AggregateException ex)
             {
                 // More than one of the above exceptions were triggered.
                 // Deal with the exception here, and/or rethrow at your discretion.
-                LambdaLogger.Log($"Exception:{ex.Message}, Stacktrace: {ex.StackTrace}{Environment.NewLine}");
+                LambdaLogger.Log($"Error:{ex.Message}, Stacktrace: {ex.StackTrace}{Environment.NewLine}");
 
             }
 
@@ -172,11 +179,11 @@ namespace PodderCentral.PurgeData
             // Your code goes here.
             return secret;
         }
-        private async Task<string> GetFakeSecret()
-        {
-            var secret = "{\"username\":\"postgres\",\"password\":\"Beyond123$\",\"engine\":\"postgres\",\"host\":\"postgre-database-1.cluster-c6nj7tjbxrx6.us-east-1.rds.amazonaws.com\",\"port\":5432,\"dbClusterIdentifier\":\"postgre-database-1\"}";
-            return secret;
-        }
+        //private async Task<string> GetFakeSecret()
+        //{
+        //    var secret = "{\"username\":\"postgres\",\"password\":\"Beyond123$\",\"engine\":\"postgres\",\"host\":\"postgre-database-1.cluster-c6nj7tjbxrx6.us-east-1.rds.amazonaws.com\",\"port\":5432,\"dbClusterIdentifier\":\"postgre-database-1\"}";
+        //    return secret;
+        //}
     }
 
     

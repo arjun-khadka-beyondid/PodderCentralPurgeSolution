@@ -18,14 +18,14 @@ namespace PodderCentral.PurgeData
         }
         public string SignUpTableName = "SIGNUPDETAILSENC";
         public string _connectionString;
-        public  int PurgeData()
+        public  int PurgeData(int daysToPreserveData)
         {
             int result = -1;
             using (NpgsqlConnection con = new NpgsqlConnection(_connectionString))
             {
                 con.Open();
                 //string executeQuery = $"DELETE FROM {SignUpTableName} WHERE activationkey=@activationkey";
-                string executeQuery = $"DELETE FROM public.signupdetailsenc WHERE DATE_PART('day', AGE(now(), keygenerateddate))  >= 2";
+                string executeQuery = $"DELETE FROM public.signupdetailsenc WHERE DATE_PART('day', AGE(now(), keygenerateddate))  > {daysToPreserveData}";
                 using (NpgsqlCommand cmd = new NpgsqlCommand(executeQuery, con))
                 {
                   

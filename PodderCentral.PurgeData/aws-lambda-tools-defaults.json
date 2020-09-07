@@ -16,9 +16,7 @@
     "function-handler"     : "PodderCentral.PurgeData::PodderCentral.PurgeData.Function::FunctionHandler",
     "function-name"        : "Purge-data",
     "function-role"        : "arn:aws:iam::052958454317:role/purge-data-role",
-    "tracing-mode"         : "PassThrough",
-    "environment-variables" : "\"dbName\"=\"insuletidtest\";\"region\"=\"us-east-1\";\"secretName\"=\"sec-insuletid-test\"",
-    "function-description"  : "Purge data from rds",
-    "function-subnets"      : "subnet-61f6b04e",
-    "function-security-groups" : "sg-021116290f431a744"
+    "tracing-mode"         : "PassThrough",   
+    "function-description"  : "Purge data from rds"
+    
 }
