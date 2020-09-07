@@ -1,0 +1,6 @@
+{
+  "SecretName": "sec-insuletid-test",
+  "Region": "us-east-1",
+  "DbName": "insuletidtest"
+}
+
