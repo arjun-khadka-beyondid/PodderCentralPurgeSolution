@@ -95,7 +95,7 @@ namespace PodderCentral.PurgeData
 
             string secret = "";
             LambdaLogger.Log($"Region:{region}{Environment.NewLine}");
-            LambdaLogger.Log($"SecretName:{secretName}{Environment.NewLine}");          
+            //LambdaLogger.Log($"SecretName:{secretName}{Environment.NewLine}");          
 
             LambdaLogger.Log($"Started:GetBySystemName{Environment.NewLine}");
             IAmazonSecretsManager client = new AmazonSecretsManagerClient(RegionEndpoint.GetBySystemName(region));
